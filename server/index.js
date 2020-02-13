@@ -1,16 +1,17 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+
 const app = express();
 const bodyParser = require('body-parser');
-const db = require('../database/index.jsx');
+const db = require('../database/index.js');
 
 const port = process.env.PORT || 3003;
 
 app.use(cors());
 
-
 app.use(express.static('./public'));
-app.use(bodyParser.urlencoded({ extended: false }))
+app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 app.engine('html', require('ejs').renderFile);

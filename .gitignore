@@ -1,6 +1,4 @@
 node_modules
-dist
-notes.txt
-config/config.js
 coverage
-public/bundle.js
+public/gallery-bundle.js
+.env
