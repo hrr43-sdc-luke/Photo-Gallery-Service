@@ -6,38 +6,20 @@ function Photo({
   alt,
   username,
   photoId,
-  }) {
+}) {
   return (
     <div>
       <img src={photoUrl} alt={alt} username={username} photoid={photoId} />
 
     </div>
-);
+  );
 }
 
-// // Photo.propType = {
-// //   photos: Proptype.exact({
-// //     photoId: Proptype.number,
-// //     photoUrl: Proptype.string,
-// //     alt: Proptype.string.isRequired,
-// //     username: Proptype.string,
-// //     experienceId: Proptype.number,
-// //   }),
-// //   photoUrl: Proptype.string.isRequired,
-// //   alt: Proptype.string.isRequired,
-// // };
-
-// // Photo.propType = {
-// //   photos: Proptype.exact([
-// //     photoId: Proptype.number,
-// //     photoUrl: Proptype.string,
-// //     alt: Proptype.string.isRequired,
-// //     username: Proptype.string,
-// //     experienceId: Proptype.number,
-// //   ]),
-// //   photoUrl: Proptype.string.isRequired,
-// //   alt: Proptype.string.isRequired,
-// // };
-
+Photo.propTypes = {
+  photoUrl: PropTypes.string.isRequired,
+  alt: PropTypes.string.isRequired,
+  username: PropTypes.string.isRequired,
+  photoId: PropTypes.number.isRequired,
+};
 
 export default Photo;

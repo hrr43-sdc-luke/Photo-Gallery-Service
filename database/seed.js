@@ -1,6 +1,6 @@
 
 const faker = require('faker');
-const db = require('./index.jsx');
+const db = require('./index.js');
 
 function getRandomInt(min1, max1) {
   const min = Math.ceil(min1);

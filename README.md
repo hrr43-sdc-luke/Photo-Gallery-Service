@@ -1,9 +1,20 @@
 # Photo-Gallery-Service
 
+### Requirements
+- A SQL server
+- SQL server configuration environment variables
+SQL_HOST=localhost
+SQL_USER=me
+SQL_PASSWORD=secret
+SQL_DATABASE=my_db
+- Optional: Node configuration environment variable (default is 3000)
+PORT=3003
+
 ### Start Up
 1. Run `npm install`
-2. Run `npm run build` to start up webpack
-3. Run `npm run start` to start up server
+2. Run `npm run seed`
+3. Run `npm run build` to start up webpack
+4. Run `npm run start` to start up server
 
 ### To Add this Service to your Proxy Server
 1. Git clone repo into your directory

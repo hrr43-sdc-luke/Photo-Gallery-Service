@@ -8,7 +8,7 @@ module.exports = {
   },
   // "ignorePatterns": ["bundle.js", "node_modules"],
   "rules": {
-  "no-console": "off",
-  "import/extensions": "off"
+    "linebreak-style": "off",
+    "no-console": "off",
   }
 };

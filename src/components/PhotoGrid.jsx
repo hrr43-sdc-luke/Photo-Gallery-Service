@@ -1,20 +1,15 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import Photo from './Photo.jsx';
-
+import Photo from './Photo';
 
 function PhotoGrid({
-photos,
-isOpen,
-clickOnGridPhoto,
- }) {
+  photos,
+}) {
   return (
 
     <div>
       {(photos.slice(0, 6)).map((photo) => {
-        const photoId = photo.photoId;
-        const photoUrl = photo.photoUrl;
-        const alt = photo.alt;
+        const { photoId, photoUrl, alt } = photo;
         return (
           <div className="gridPhoto">
 
@@ -31,6 +26,10 @@ clickOnGridPhoto,
     </div>
   );
 }
+
+PhotoGrid.propTypes = {
+  photos: PropTypes.array.isRequired,
+};
 
 // PhotoGrid.propTypes = {
 //   photos: Proptype.array.isRequired,
