@@ -29,8 +29,9 @@ for (let i = startExperience; i <= numOfExperiences; i += 1) {
     const writeStart = process.uptime();
     fs.writeFileSync('./data.csv', recordsString, { flag: 'a' });
     recordsString = '';
-    global.gc();
-    console.log(' GC: ', i, '; write/GC time: ', process.uptime() - writeStart, '; overall time: ', process.uptime());
+    // global.gc();  // force JS to garbage collect to prevent running out of memory
+    console.log(' GC: ', i, '; write/GC time: ', process.uptime() - writeStart,
+      '; overall time: ', process.uptime());
   }
 }
 

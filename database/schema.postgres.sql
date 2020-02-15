@@ -1,18 +1,12 @@
--- Table: public.photos
-
--- DROP TABLE public.photos;
-
 CREATE TABLE public.photos
 (
-    "photoId" integer NOT NULL DEFAULT nextval('"photos_photoId_seq"'::regclass),
-    "photoUrl" text COLLATE pg_catalog."default" NOT NULL,
-    alt text COLLATE pg_catalog."default",
-    username text COLLATE pg_catalog."default",
+    "photoId" serial NOT NULL,
+    "photoUrl" text NOT NULL,
+    alt text,
+    username text NOT NULL,
     "experienceId" integer NOT NULL,
-    CONSTRAINT photos_pkey PRIMARY KEY ("photoId")
-)
-
-TABLESPACE pg_default;
+    PRIMARY KEY ("photoId")
+);
 
 ALTER TABLE public.photos
     OWNER to postgres;
