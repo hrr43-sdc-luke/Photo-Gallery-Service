@@ -10,5 +10,6 @@ module.exports = {
   "rules": {
     "linebreak-style": "off",
     "no-console": "off",
+    "radix": "off", // because target is not prior to ES5
   }
 };

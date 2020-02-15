@@ -6,7 +6,7 @@ const app = express();
 const bodyParser = require('body-parser');
 const db = require('../database/index.js');
 
-const port = process.env.PORT || 3003;
+const port = process.env.PORT || 3000;
 
 app.use(cors());
 
@@ -22,7 +22,7 @@ app.get('/:id', (req, res) => {
 
 app.get('/photos/:id', (req, res) => {
   const requestExpId = parseInt(req.params.id, 10);
-  db.getPhotos(requestExpId, (err, exData) => {
+  db.getExperiencePhotos(requestExpId, (err, exData) => {
     if (err) {
       res.status(400).send(err);
     } else {
@@ -31,5 +31,37 @@ app.get('/photos/:id', (req, res) => {
   });
 });
 
+app.post('/photos/:id', (req, res) => {
+  const requestExpId = parseInt(req.params.id, 10);
+  db.postExperiencePhotos(requestExpId, req.body, (err, exData) => {
+    if (err) {
+      res.status(400).send(err);
+    } else {
+      res.status(200).send(exData);
+    }
+  });
+});
+
+app.put('/photos/:id', (req, res) => {
+  const requestExpId = parseInt(req.params.id, 10);
+  db.putExperiencePhotos(requestExpId, req.body, (err, exData) => {
+    if (err) {
+      res.status(400).send(err);
+    } else {
+      res.status(200).send(exData);
+    }
+  });
+});
+
+app.delete('/photos/:id', (req, res) => {
+  const requestExpId = parseInt(req.params.id, 10);
+  db.deleteExperiencePhotos(requestExpId, (err, exData) => {
+    if (err) {
+      res.status(400).send(err);
+    } else {
+      res.status(200).send(exData);
+    }
+  });
+});
 
 app.listen(port, () => console.log(`App listening on port ${port}`));

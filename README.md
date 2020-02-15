@@ -32,3 +32,12 @@ PORT=3003
 6. Run `npm run seed` to seed the MySQL database
 7. Run `npm run start` to start up the server
 
+## CRUD API
+ |       ENDPOINTS      |   TYPE   |         OPERATION          |
+ |  ------------------  | -------  |  ------------------------  |
+ |      /photos/:id     |  GET     |  retrieves an experience   |
+ |      /photos/:id     |  POST    |  creates an experience     |
+ |      /photos/:id     |  PUT     |  updates an experience     |
+ |      /photos/:id     |  DELETE  |  deletes an experience     |
+ 
+Note: Because this service is not an authoritative source of experience IDs, one must be supplied to POST. Normally, POST would not require any sort of ID. If this service receives a POST request to an exisiting ID, it is overwritten.

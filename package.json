@@ -5,8 +5,10 @@
   "main": "src/index.js",
   "scripts": {
     "test": "jest",
-    "build": "webpack -d --mode development --watch --config webpack.config.js",
-    "start": "nodemon ./server/index.jsx --watch",
+    "build-dev": "webpack --mode development --watch",
+    "build": "webpack --mode production",
+    "start-dev": "nodemon ./server --watch server --watch database --watch .env",
+    "start": "node server",
     "seed": "node ./database/seed.js"
   },
   "repository": {
