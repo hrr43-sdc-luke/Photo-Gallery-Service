@@ -11,93 +11,62 @@ pool.on('error', (err) => {
 
 const db = {
   getExperiencePhotos: (expId) => pool
-    .connect()
-    .then((client) => client
-      .query('SELECT * FROM photos WHERE "experienceId" = $1', [expId])
-      .then((res) => {
-        client.release();
-        return res.rows;
-      })
-      .catch((err) => {
-        client.release();
-        return err;
-      })),
+    .query('SELECT * FROM photos WHERE "experienceId" = $1', [expId])
+    .then((res) => res.rows)
+    .catch((err) => err),
 
   getPhoto: (photoId) => pool
-    .connect()
-    .then((client) => client
-      .query('SELECT * FROM photos WHERE "photoId" = $1', [photoId])
-      .then((res) => {
-        client.release();
-        return res.rows;
-      })
-      .catch((err) => {
-        client.release();
-        return err;
-      })),
+    .query('SELECT * FROM photos WHERE "photoId" = $1', [photoId])
+    .then((res) => res.rows[0])
+    .catch((err) => err),
 
-  updatePhoto: (photoId, photo) => pool
-    .connect()
-    .then((client) => {
-      const localPhoto = photo;
-      if (localPhoto.photoId) delete localPhoto.photoId;
+  updatePhoto: (photoId, photo) => {
+    const localPhoto = photo;
+    if (localPhoto.photoId) delete localPhoto.photoId;
 
-      const values = Object.values(localPhoto);
-      values.push(photoId);
+    const values = Object.values(localPhoto);
+    values.push(photoId);
 
-      return client
-        .query(`UPDATE photos SET (${Object.keys(localPhoto).map((k) => `"${k}"`)}) =
+    return pool
+      .query(`UPDATE photos SET (${Object.keys(localPhoto).map((k) => `"${k}"`)}) =
           (${Object.keys(localPhoto).map((e, i) => `$${i + 1}`)}) WHERE
           "photoId"=$${Object.keys(localPhoto).length + 1}`, values)
-        .then((res) => {
-          if (res.rowCount === 1) {
-            client.release();
+      .then((res) => {
+        if (res.rowCount === 1) {
+          localPhoto.photoId = photoId;
+          return localPhoto;
+        }
+        return pool
+          .query(`INSERT INTO photos ("photoId", "photoUrl", alt, username, "experienceId")
+          VALUES ($1, $2, $3, $4, $5)`, [photoId, photo.photoUrl, photo.alt, photo.username, photo.experienceId])
+          .then(() => {
             localPhoto.photoId = photoId;
             return localPhoto;
-          }
-          return client
-            .query(`INSERT INTO photos ("photoId", "photoUrl", alt, username, "experienceId")
-          VALUES ($1, $2, $3, $4, $5)`, [photoId, photo.photoUrl, photo.alt, photo.username, photo.experienceId])
-            .then(() => {
-              client.release();
-              localPhoto.photoId = photoId;
-              return localPhoto;
-            });
-        })
-        .catch((err) => {
-          client.release();
-          return err;
-        });
-    }),
+          });
+      })
+      .catch((err) => err);
+  },
 
   deletePhoto: (photoId) => pool
-    .connect()
-    .then((client) => client
-      .query('DELETE FROM photos WHERE "photoId" = $1 RETURNING *', [photoId])
-      .then((res) => {
-        client.release();
-        if (res.rowCount === 1) return res.rows[0];
-        return null;
-      })
-      .catch((err) => {
-        client.release();
-        return err;
-      })),
+    .query('DELETE FROM photos WHERE "photoId" = $1 RETURNING *', [photoId])
+    .then((res) => {
+      if (res.rowCount === 1) return res.rows[0];
+      return null;
+    })
+    .catch((err) => err),
 
-  insertPhoto: ({ photoUrl, alt, username, experienceId }) =>
-    pool
-      .connect()
-      .then((client) => client
-        .query(`INSERT INTO photos ("photoUrl", alt, username, "experienceId")
+  insertPhoto: ({
+    photoUrl, alt, username, experienceId,
+  }) => pool
+    .query(`INSERT INTO photos ("photoUrl", alt, username, "experienceId")
        VALUES ($1, $2, $3, $4) RETURNING "photoId"`, [photoUrl, alt, username, experienceId])
-        .then((res) => {
-          client.release();
-          return { photoId: res.rows[0].photoId, photoUrl, alt, username, experienceId };
-        })
-        .catch((err) => {
-          client.release();
-          return err;
-        })),
+    .then((res) => ({
+      photoId: res.rows[0].photoId, photoUrl, alt, username, experienceId,
+    }))
+    .catch((err) => err),
+
+  end: () => pool.end(),
+  pool,
 };
 
 module.exports = db;
