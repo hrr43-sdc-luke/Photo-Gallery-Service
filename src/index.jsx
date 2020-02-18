@@ -29,14 +29,9 @@ class App extends Component {
   }
 
   componentDidMount() {
-    const urlSplit = window.location.href.split('/');
-    let experienceId = parseInt(urlSplit[urlSplit.length - 1] || 1, 10);
+    const experienceId = window.location.search.slice(1) || 1;
 
-    if (Number.isNaN(experienceId)) {
-      experienceId = 1;
-    }
-
-    axios.get(`/photos/${experienceId}`)
+    axios.get(`/api/exp-photos/${experienceId}`)
       .then((res) => {
         const photos = res.data;
         const heroPhoto = photos[0];
