@@ -1,0 +1,172 @@
+/* eslint-disable func-names */
+/* eslint-disable prefer-arrow-callback */
+require('dotenv').config();
+require('assert');
+const chai = require('chai');
+const chaiAsPromised = require('chai-as-promised');
+const cassandra = require('cassandra-driver');
+const { Pool } = require('pg');
+
+// Mocha setup
+chai.use(chaiAsPromised);
+const { expect } = chai;
+
+// Cassandra setup
+const cass = new cassandra.Client({
+  contactPoints: ['localhost'],
+  localDataCenter: 'datacenter1',
+  keyspace: 'photo',
+});
+
+// PostgreSQL setup
+const pg = new Pool();
+pg.on('error', (err) => {
+  console.error('Unexpected error on idle client', err);
+  process.exit(-1);
+});
+
+const numOfExperiences = 10000000;
+const numOfTests = 20; // How many photos to retrieve, for instance
+
+// make an initial query from both DBs to wake them up
+const pgPromise = pg.query('SELECT * FROM photos WHERE "experienceId" = $1', [33]);
+const cassPromise = cass.execute(
+  'SELECT * FROM photo.photos WHERE "experience_id"=?', [33], { prepare: true },
+);
+
+Promise.all([pgPromise, cassPromise])
+  .then(() => {
+    describe('Database', function () {
+      after(function () {
+        return Promise.all([pg.end(), cass.shutdown()]);
+      });
+
+      const expIds = Array.from({ length: numOfTests },
+        () => Math.floor(Math.random() * numOfExperiences));
+
+      expIds.forEach(function (expId) {
+        it(`PostgreSQL retrieves photos from experience ${expId}`, function () {
+          const getPg = pg.query('SELECT * FROM photos WHERE "experienceId" = $1', [expId]);
+          return Promise.all([
+            expect(getPg).to.eventually.satisfy(function (results) {
+              if (results.length) {
+                return results[0].username
+                  && results[0].photo_url
+                  && results[0].experience_id === expId;
+              }
+              return true;
+            }),
+          ]);
+        });
+      });
+
+      expIds.forEach(function (expId) {
+        it(`Cassandra retrieves photos from experience ${expId}`, function () {
+          const getCass = cass.execute('SELECT * FROM photo.photos WHERE "experience_id"=?', [expId], { prepare: true });
+          return Promise.all([
+            expect(getCass).to.eventually.satisfy(function (results) {
+              if (results.length) {
+                return results[0].username
+                  && results[0].photo_url
+                  && results[0].experience_id === expId;
+              }
+              return true;
+            }),
+          ]);
+        });
+      });
+
+      expIds.forEach(function (expId) {
+        it(`PostgreSQL deletes photos`, function () {
+          return pg.query('SELECT * FROM photos WHERE "experienceId" = $1', [expId])
+            .then((results) => {
+              // console.log('results 1: ', results.rows[0])
+              const deletePg = pg.query('DELETE FROM photos WHERE "photoId" = $1', [results.rows[Math.floor(Math.random() * results.rows.length)].photoId]);
+              return expect(deletePg).to.eventually.satisfy(function (results2) {
+                // console.log(results2);
+                return results2.rowCount === 1;
+              });
+            });
+        });
+      });
+
+      expIds.forEach(function (expId) {
+        it(`Cassandra deletes photos`, function () {
+          return cass.execute('SELECT * FROM photo.photos WHERE "experience_id"=?', [expId], { prepare: true })
+            .then((results) => {
+              const row = Math.floor(Math.random() * results.rows.length);
+              const deleteCass = cass.execute('DELETE FROM photos WHERE experience_id=? AND photo_url=? AND username=?', [
+                results.rows[row].experience_id,
+                results.rows[row].photo_url,
+                results.rows[row].username,
+              ], { prepare: true });
+              return expect(deleteCass).to.eventually.satisfy(function (results2) {
+                return typeof results2 === 'object';
+              });
+            });
+        });
+      });
+
+      expIds.forEach(function (expId) {
+        it(`PostgreSQL updates records`, function () {
+          return pg.query('SELECT * FROM photos WHERE "experienceId" = $1', [expId])
+            .then((results) => {
+              const deletePg = pg.query('UPDATE photos SET username=\'not a username\' WHERE "photoId" = $1', [results.rows[Math.floor(Math.random() * results.rows.length)].photoId]);
+              return expect(deletePg).to.eventually.satisfy(function (results2) {
+                return results2.rowCount === 1;
+              });
+            });
+        });
+      });
+
+      expIds.forEach(function (expId) {
+        it(`Cassandra updates records`, function () {
+          return cass.execute('SELECT * FROM photo.photos WHERE "experience_id"=?', [expId], { prepare: true })
+            .then((results) => {
+              const row = Math.floor(Math.random() * results.rows.length);
+              const deleteCass = cass.execute('UPDATE photo.photos SET alt=\'XXXXXXX ALT\' WHERE experience_id=? AND photo_url=? AND username=?', [
+                results.rows[row].experience_id,
+                results.rows[row].photo_url,
+                results.rows[row].username,
+              ], { prepare: true });
+              return expect(deleteCass).to.eventually.satisfy(function (results2) {
+                return typeof results2 === 'object';
+              });
+            });
+        });
+      });
+
+      expIds.forEach(function (expId) {
+        it(`PostgreSQL inserts records`, function () {
+          return pg.query('SELECT * FROM photos WHERE "experienceId" = $1', [expId])
+            .then((results) => {
+              const insertPg = pg.query('INSERT INTO photos ("photoUrl", alt, username, "experienceId") VALUES ($1, $2, $3, $4)',
+              ['HTTP NOWHERE', 'ALT NOTHING', 'NOT A USERNAME', expId]);
+              return expect(insertPg).to.eventually.satisfy(function (results2) {
+                return results2.rowCount === 1;
+              });
+            });
+        });
+      });
+
+      expIds.forEach(function (expId) {
+        it(`Cassandra inserts records`, function () {
+          return cass.execute('SELECT * FROM photo.photos WHERE "experience_id"=?', [expId], { prepare: true })
+            .then((results) => {
+              const insertCass = cass.execute('INSERT INTO photo.photos (alt, experience_id, photo_url, username) VALUES (?, ?, ?, ?)', [
+                'ALT NOTHING',
+                expId,
+                'HTTP NOWHERE',
+                'NOT A USERNAME',
+              ], { prepare: true });
+              return expect(insertCass).to.eventually.satisfy(function (results2) {
+                return typeof results2 === 'object';
+              });
+            });
+        });
+      });
+    });
+
+
+    run();
+  });

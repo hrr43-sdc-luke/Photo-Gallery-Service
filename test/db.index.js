@@ -12,6 +12,7 @@ const { expect } = chai;
 const db = require('../database');
 
 const numOfTests = 20; // How many photos to retrieve, for instance
+const numOfExperiences = 10000000;
 
 let minPhotoId;
 let maxPhotoId;
@@ -27,7 +28,7 @@ db.pool.query('SELECT min("photoId"), max("photoId") FROM photos;')
     describe('Database', function () {
       after(db.end);
 
-      describe('getPhoto retrieves random and beginning photos',
+      describe.skip('getPhoto retrieves random and beginning photos',
         function () {
           const photoIds = Array.from({ length: numOfTests },
             () => Math.floor(Math.random() * (maxPhotoId - minPhotoId)
@@ -58,7 +59,7 @@ db.pool.query('SELECT min("photoId"), max("photoId") FROM photos;')
           });
         });
 
-      describe('getPhoto retrieves photos near the end of the dataset',
+      describe.skip('getPhoto retrieves photos near the end of the dataset',
         function () {
           const photoIds = Array.from({ length: numOfTests },
             () => Math.floor(maxPhotoId - Math.random() * maxPhotoId * 0.1));
@@ -76,6 +77,56 @@ db.pool.query('SELECT min("photoId"), max("photoId") FROM photos;')
                       && results.photoUrl
                       && typeof results.experienceId === 'number'
                       && results.experienceId > 0;
+                  }
+                  return true;
+                }),
+              ]);
+            });
+          });
+        });
+
+      describe('getExperiencePhotos retrieves random and beginning experience photos',
+        function () {
+          const expIds = Array.from({ length: numOfTests },
+            () => Math.floor(Math.random() * numOfExperiences));
+
+          expIds.push(Math.floor(Math.random() * 100));
+          expIds.push(Math.floor(Math.random() * 100));
+          expIds.push(Math.floor(Math.random() * 100));
+
+          expIds.forEach(function (expId) {
+            it(`retrieves photos from experience ${expId}`, function () {
+              const getExperiencePhotos = db.getExperiencePhotos(expId);
+              return Promise.all([
+                expect(getExperiencePhotos).to.eventually.be.an('array'),
+                expect(getExperiencePhotos).to.eventually.satisfy(function (results) {
+                  if (results.length) {
+                    return results[0].username
+                      && results[0].photoUrl
+                      && results[0].experienceId === expId;
+                  }
+                  return true;
+                }),
+              ]);
+            });
+          });
+        });
+
+      describe('getExperiencePhotos retrieves photos near the end of the dataset',
+        function () {
+          const expIds = Array.from({ length: numOfTests },
+            () => Math.floor(numOfExperiences - Math.random() * numOfExperiences * 0.1));
+
+          expIds.forEach(function (expId) {
+            it(`retrieves near-the-end-photo ${expId}`, function () {
+              const getExperiencePhotos = db.getExperiencePhotos(expId);
+              return Promise.all([
+                expect(getExperiencePhotos).to.eventually.be.an('array'),
+                expect(getExperiencePhotos).to.eventually.satisfy(function (results) {
+                  if (results.length) {
+                    return results[0].username
+                      && results[0].photoUrl
+                      && results[0].experienceId === expId;
                   }
                   return true;
                 }),
