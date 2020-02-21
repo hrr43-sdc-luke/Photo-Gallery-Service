@@ -4,7 +4,7 @@ const cors = require('cors');
 
 const app = express();
 const bodyParser = require('body-parser');
-const db = require('../database/index.js');
+const db = require('../database/cassandra.index');
 
 const port = process.env.PORT || 3000;
 
@@ -27,18 +27,16 @@ app.get('/api/exp-photos/:expId', (req, res) => {
     });
 });
 
-// The remainder of the routes work on individual photos
-
-app.use('/api/photo/:photoId', (req, res) => {
-  const photoId = parseInt(req.params.photoId, 10);
+// The remainder of the routes work on individual photos (what little can be
+// done with them).
+//
+// Users of these routes must provide a photo in the request body (with
+// experienceId, username, and photoUrl.)
+app.all('/api/photo', (req, res) => {
   let action;
 
-  // POST is for a new photo (i.e. without a photo ID, or ignore if there is one)
-  // PUT is for updating a photo with an already existing ID OR, if nothing
-  // exists at the photoId, servers are allowed to create it, which we will do
-  // as it helps with testing (you can put back records you delete)
-  if (req.method === 'GET') {
-    action = db.getPhoto;
+  if (req.method === 'POST') {
+    action = db.insertPhoto;
   } else if (req.method === 'PUT') {
     action = db.updatePhoto;
   } else if (req.method === 'DELETE') {
@@ -47,18 +45,11 @@ app.use('/api/photo/:photoId', (req, res) => {
     res.status(400).end();
     return;
   }
-  action(photoId, req.body)
-    .then((photo) => {
-      if (photo) return res.status(200).send(photo);
-      return res.status(204).end();
-    })
-    .catch((err) => res.status(400).send(err));
-});
 
-app.post('/api/photo', (req, res) => {
-  db.insertPhoto(req.body)
-    .then((photo) => res.status(200).send(photo))
-    .catch((err) => res.status(400).send(err));
+  if (!req.body.alt) req.body.alt = '';
+  action(req.body, req.body.alt)
+    .then(() => res.status(200).end())
+    .catch((err) => (res.status(400).send(err)));
 });
 
 app.listen(port, () => console.log(`App listening on port ${port}`));
