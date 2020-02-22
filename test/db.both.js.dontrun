@@ -26,7 +26,7 @@ pg.on('error', (err) => {
 });
 
 const numOfExperiences = 10000000;
-const numOfTests = 20; // How many photos to retrieve, for instance
+const numOfTests = 1; // How many photos to retrieve, for instance
 
 // make an initial query from both DBs to wake them up
 const pgPromise = pg.query('SELECT * FROM photos WHERE "experienceId" = $1', [33]);
@@ -45,10 +45,10 @@ Promise.all([pgPromise, cassPromise])
         () => Math.floor(Math.random() * numOfExperiences));
 
       expIds.forEach(function (expId) {
-        it(`PostgreSQL retrieves photos from experience ${expId}`, function () {
-          const getPg = pg.query('SELECT * FROM photos WHERE "experienceId" = $1', [expId]);
+        it.skip(`PostgreSQL retrieves photos from experience ${expId}`, function () {
+          const dbPromise = pg.query('SELECT * FROM photos WHERE "experienceId" = $1', [expId]);
           return Promise.all([
-            expect(getPg).to.eventually.satisfy(function (results) {
+            expect(dbPromise).to.eventually.satisfy(function (results) {
               if (results.length) {
                 return results[0].username
                   && results[0].photo_url
@@ -62,9 +62,9 @@ Promise.all([pgPromise, cassPromise])
 
       expIds.forEach(function (expId) {
         it(`Cassandra retrieves photos from experience ${expId}`, function () {
-          const getCass = cass.execute('SELECT * FROM photo.photos WHERE "experience_id"=?', [expId], { prepare: true });
+          const dbPromise = cass.execute('SELECT * FROM photo.photos WHERE "experience_id"=?', [expId], { prepare: true });
           return Promise.all([
-            expect(getCass).to.eventually.satisfy(function (results) {
+            expect(dbPromise).to.eventually.satisfy(function (results) {
               if (results.length) {
                 return results[0].username
                   && results[0].photo_url
@@ -77,13 +77,11 @@ Promise.all([pgPromise, cassPromise])
       });
 
       expIds.forEach(function (expId) {
-        it(`PostgreSQL deletes photos`, function () {
+        it.skip(`PostgreSQL deletes photos`, function () {
           return pg.query('SELECT * FROM photos WHERE "experienceId" = $1', [expId])
             .then((results) => {
-              // console.log('results 1: ', results.rows[0])
-              const deletePg = pg.query('DELETE FROM photos WHERE "photoId" = $1', [results.rows[Math.floor(Math.random() * results.rows.length)].photoId]);
-              return expect(deletePg).to.eventually.satisfy(function (results2) {
-                // console.log(results2);
+              const dbPromise = pg.query('DELETE FROM photos WHERE "photoId" = $1', [results.rows[Math.floor(Math.random() * results.rows.length)].photoId]);
+              return expect(dbPromise).to.eventually.satisfy(function (results2) {
                 return results2.rowCount === 1;
               });
             });
@@ -95,12 +93,12 @@ Promise.all([pgPromise, cassPromise])
           return cass.execute('SELECT * FROM photo.photos WHERE "experience_id"=?', [expId], { prepare: true })
             .then((results) => {
               const row = Math.floor(Math.random() * results.rows.length);
-              const deleteCass = cass.execute('DELETE FROM photos WHERE experience_id=? AND photo_url=? AND username=?', [
+              const dbPromise = cass.execute('DELETE FROM photos WHERE experience_id=? AND photo_url=? AND username=?', [
                 results.rows[row].experience_id,
                 results.rows[row].photo_url,
                 results.rows[row].username,
               ], { prepare: true });
-              return expect(deleteCass).to.eventually.satisfy(function (results2) {
+              return expect(dbPromise).to.eventually.satisfy(function (results2) {
                 return typeof results2 === 'object';
               });
             });
@@ -108,11 +106,11 @@ Promise.all([pgPromise, cassPromise])
       });
 
       expIds.forEach(function (expId) {
-        it(`PostgreSQL updates records`, function () {
+        it.skip(`PostgreSQL updates records`, function () {
           return pg.query('SELECT * FROM photos WHERE "experienceId" = $1', [expId])
             .then((results) => {
-              const deletePg = pg.query('UPDATE photos SET username=\'not a username\' WHERE "photoId" = $1', [results.rows[Math.floor(Math.random() * results.rows.length)].photoId]);
-              return expect(deletePg).to.eventually.satisfy(function (results2) {
+              const dbPromise = pg.query('UPDATE photos SET username=\'not a username\' WHERE "photoId" = $1', [results.rows[Math.floor(Math.random() * results.rows.length)].photoId]);
+              return expect(dbPromise).to.eventually.satisfy(function (results2) {
                 return results2.rowCount === 1;
               });
             });
@@ -124,12 +122,12 @@ Promise.all([pgPromise, cassPromise])
           return cass.execute('SELECT * FROM photo.photos WHERE "experience_id"=?', [expId], { prepare: true })
             .then((results) => {
               const row = Math.floor(Math.random() * results.rows.length);
-              const deleteCass = cass.execute('UPDATE photo.photos SET alt=\'XXXXXXX ALT\' WHERE experience_id=? AND photo_url=? AND username=?', [
+              const dbPromise = cass.execute('UPDATE photo.photos SET alt=\'XXXXXXX ALT\' WHERE experience_id=? AND photo_url=? AND username=?', [
                 results.rows[row].experience_id,
                 results.rows[row].photo_url,
                 results.rows[row].username,
               ], { prepare: true });
-              return expect(deleteCass).to.eventually.satisfy(function (results2) {
+              return expect(dbPromise).to.eventually.satisfy(function (results2) {
                 return typeof results2 === 'object';
               });
             });
@@ -137,12 +135,12 @@ Promise.all([pgPromise, cassPromise])
       });
 
       expIds.forEach(function (expId) {
-        it(`PostgreSQL inserts records`, function () {
+        it.skip(`PostgreSQL inserts records`, function () {
           return pg.query('SELECT * FROM photos WHERE "experienceId" = $1', [expId])
             .then((results) => {
-              const insertPg = pg.query('INSERT INTO photos ("photoUrl", alt, username, "experienceId") VALUES ($1, $2, $3, $4)',
+              const dbPromise = pg.query('INSERT INTO photos ("photoUrl", alt, username, "experienceId") VALUES ($1, $2, $3, $4)',
               ['HTTP NOWHERE', 'ALT NOTHING', 'NOT A USERNAME', expId]);
-              return expect(insertPg).to.eventually.satisfy(function (results2) {
+              return expect(dbPromise).to.eventually.satisfy(function (results2) {
                 return results2.rowCount === 1;
               });
             });
@@ -153,13 +151,13 @@ Promise.all([pgPromise, cassPromise])
         it(`Cassandra inserts records`, function () {
           return cass.execute('SELECT * FROM photo.photos WHERE "experience_id"=?', [expId], { prepare: true })
             .then((results) => {
-              const insertCass = cass.execute('INSERT INTO photo.photos (alt, experience_id, photo_url, username) VALUES (?, ?, ?, ?)', [
+              const dbPromise = cass.execute('INSERT INTO photo.photos (alt, experience_id, photo_url, username) VALUES (?, ?, ?, ?)', [
                 'ALT NOTHING',
                 expId,
                 'HTTP NOWHERE',
                 'NOT A USERNAME',
               ], { prepare: true });
-              return expect(insertCass).to.eventually.satisfy(function (results2) {
+              return expect(dbPromise).to.eventually.satisfy(function (results2) {
                 return typeof results2 === 'object';
               });
             });
