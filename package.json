@@ -25,6 +25,7 @@
     "@babel/core": "^7.8.3",
     "@babel/preset-env": "^7.8.3",
     "@babel/preset-react": "^7.8.3",
+    "artillery": "^1.6.0-29",
     "babel-loader": "^8.0.6",
     "babel-plugin-transform-es2015-modules-commonjs": "^6.26.2",
     "chai": "^4.2.0",
@@ -41,6 +42,7 @@
     "fast-csv": "^4.1.0",
     "jest": "^25.1.0",
     "mocha": "^7.0.1",
+    "newrelic": "^6.4.1",
     "nodemon": "^2.0.2",
     "webpack": "^4.41.5",
     "webpack-cli": "^3.3.10"

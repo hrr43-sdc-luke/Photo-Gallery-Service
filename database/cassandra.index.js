@@ -1,9 +1,12 @@
+require('dotenv').config();
+
 const cassandra = require('cassandra-driver');
 
 const client = new cassandra.Client({
   contactPoints: ['localhost'],
-  localDataCenter: 'datacenter1',
+  localDataCenter: 'Cassandra',
   keyspace: 'photo',
+  credentials: { username: 'www', password: process.env.CPASS }
 });
 
 const photoTable = 'photos';
