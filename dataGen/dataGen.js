@@ -1,6 +1,7 @@
 const fs = require('fs');
 const faker = require('faker');
 
+const filename = './data2.csv';
 const startExperience = 1;
 const numOfExperiences = 10000000;
 const numOfPhotos = 25;
@@ -11,7 +12,7 @@ const topics = fs.readFileSync('./topics.txt', 'utf8').split(/\r*\n/);
 
 // Normally, startExperience would be 1, and we'll make a new file. However, if the process
 // doesn't finish and you want to just start where you left off, change startExperience
-if (startExperience <= 1) fs.writeFileSync('./data.csv');
+if (startExperience <= 1) fs.writeFileSync(filename);
 
 let recordsString = '';
 
@@ -27,7 +28,7 @@ for (let i = startExperience; i <= numOfExperiences; i += 1) {
 
   if (i % 100000 === 0) {
     const writeStart = process.uptime();
-    fs.writeFileSync('./data.csv', recordsString, { flag: 'a' });
+    fs.writeFileSync(filename, recordsString, { flag: 'a' });
     recordsString = '';
     // global.gc();  // force JS to garbage collect to prevent running out of memory
     console.log(' GC: ', i, '; write/GC time: ', process.uptime() - writeStart,
@@ -37,6 +38,6 @@ for (let i = startExperience; i <= numOfExperiences; i += 1) {
 
 // Write out anything left in recordsString
 if (recordsString !== '') {
-  fs.writeFileSync('./data.csv', recordsString, { flag: 'a' });
+  fs.writeFileSync(filename, recordsString, { flag: 'a' });
 }
 console.log(process.uptime());
