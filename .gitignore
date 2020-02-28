@@ -5,3 +5,7 @@ public/gallery-bundle.js
 dataGen/images
 dataGen/*.csv
 dataGen/*.7z
+dataGen/*.gz
+dataGen/logs
+newrelic_agent.log
+newrelic.js

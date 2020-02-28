@@ -1,0 +1,12 @@
+config:
+  target: 'http://localhost:3000'
+  phases:
+    - duration: 120
+      arrivalRate: 1000
+  processor: "./customArtillery.js"
+scenarios:
+  - flow:
+    - function: "doStuff"
+    - get:
+        url: "/"
+    #- log: "Got /?{{ expId }}"

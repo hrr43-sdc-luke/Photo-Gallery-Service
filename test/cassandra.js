@@ -13,8 +13,9 @@ const { expect } = chai;
 // Cassandra setup
 const cass = new cassandra.Client({
   contactPoints: ['localhost'],
-  localDataCenter: 'datacenter1',
+  localDataCenter: 'Cassandra',
   keyspace: 'photo',
+  credentials: { username: 'www', password: process.env.CPASS }
 });
 
 const numOfExperiences = 10000000;
