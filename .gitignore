@@ -8,3 +8,4 @@ dataGen/*.7z
 dataGen/*.gz
 dataGen/logs
 newrelic_agent.log
+newrelic.js
